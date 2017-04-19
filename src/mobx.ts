@@ -2,6 +2,7 @@ export {observable} from "./api/observable";
 export {isObservable} from './api/isobservable';
 export {observe} from './api/observe';
 export { computed, IComputed, IComputedValueOptions           } from "./api/computed";
+export { autorun, reaction  } from "./api/autorun";
 // declare var __MOBX_DEVTOOLS_GLOBAL_HOOK__: { injectMobx: ((any) => void)};
 // declare var module: { exports: any };
 // if (typeof __MOBX_DEVTOOLS_GLOBAL_HOOK__ === "object") {

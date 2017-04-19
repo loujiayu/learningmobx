@@ -6,7 +6,7 @@ import * as mobx from './src/mobx';
 var m = mobx;
 var observable = mobx.observable;
 var computed = mobx.computed;
-// var transaction = mobx.transaction;
+var reaction = mobx.reaction;
 
 var voidObserver = function(){};
 
@@ -21,20 +21,19 @@ function buffer() {
     return res;
 }
 
-test('basic', function(t) {
-    var x = observable(3);
-    var z = computed(function () { return x.get() * 2});
-    var y = computed(function () { return x.get() * 3});
+test('basic', t => {
+	var a = mobx.observable(1);
+	var values = [];
 
-    m.observe(z, voidObserver);
+	var d = reaction(() => a.get(), newValue => {
+		values.push(newValue);
+	})
 
-    t.equal(z.get(), 6);
-    t.equal(y.get(), 9);
+	a.set(2);
+	a.set(3);
+	d();
+	a.set(4);
 
-    x.set(5);
-    t.equal(z.get(), 10);
-    t.equal(y.get(), 15);
-
-    // t.equal(mobx.extras.isComputingDerivation(), false);
-    t.end();
+	t.deepEqual(values, [2, 3]);
+	t.end();
 })

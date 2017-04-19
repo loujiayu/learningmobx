@@ -1,4 +1,4 @@
-import {IDerivation, IDerivationState, shouldCompute, trackDerivedFunction} from "./derivation";
+import {IDerivation, IDerivationState, shouldCompute, trackDerivedFunction, clearObserving} from "./derivation";
 import {globalState} from "./globalstate";
 import {IObservable, startBatch, endBatch} from "./observable";
 import {createInstanceofPredicate, getNextId} from "../utils/utils";
@@ -81,11 +81,11 @@ export class Reaction implements IDerivation, IReactionPublic {
   dispose() {
 		if (!this.isDisposed) {
 			this.isDisposed = true;
-			// if (!this._isRunning) {
-			// 	startBatch();
-			// 	clearObserving(this); // if disposed while running, clean up later. Maybe not optimal, but rare case
-			// 	endBatch();
-			// }
+			if (!this._isRunning) {
+				startBatch();
+				clearObserving(this); // if disposed while running, clean up later. Maybe not optimal, but rare case
+				endBatch();
+			}
 		}
 	}
 }

@@ -1,4 +1,4 @@
-import {IObservable, IDepTreeNode, addObserver} from "./observable";
+import {IObservable, IDepTreeNode, addObserver, removeObserver} from "./observable";
 import {globalState} from "./globalstate";
 import {isComputedValue} from "./computedvalue";
 
@@ -142,14 +142,14 @@ function bindDependencies(derivation: IDerivation) {
 	// Go through all old observables and check diffValue: (it is unique after last bindDependencies)
 	//   0: it's not in new observables, unobserve it
 	//   1: it keeps being observed, don't want to notify it. change to 0
-	// l = prevObserving.length;
-	// while (l--) {
-	// 	const dep = prevObserving[l];
-	// 	if (dep.diffValue === 0) {
-	// 		removeObserver(dep, derivation);
-	// 	}
-	// 	dep.diffValue = 0;
-	// }
+	l = prevObserving.length;
+	while (l--) {
+		const dep = prevObserving[l];
+		if (dep.diffValue === 0) {
+			// removeObserver(dep, derivation);
+		}
+		dep.diffValue = 0;
+	}
 
 	// Go through all new observables and check diffValue: (now it should be unique)
 	//   0: it was set to 0 in last loop. don't need to do anything.
@@ -180,13 +180,13 @@ export function changeDependenciesStateTo0(derivation: IDerivation) {
 		obs[i].lowestObserverState = IDerivationState.UP_TO_DATE;
 }
 
-// export function clearObserving(derivation: IDerivation) {
-// 	// invariant(globalState.inBatch > 0, "INTERNAL ERROR clearObserving should be called only inside batch");
-// 	const obs = derivation.observing;
-// 	let i = obs.length;
-// 	while (i--)
-// 		removeObserver(obs[i], derivation);
+export function clearObserving(derivation: IDerivation) {
+	// invariant(globalState.inBatch > 0, "INTERNAL ERROR clearObserving should be called only inside batch");
+	const obs = derivation.observing;
+	let i = obs.length;
+	while (i--)
+		removeObserver(obs[i], derivation);
 
-// 	derivation.dependenciesState = IDerivationState.NOT_TRACKING;
-// 	obs.length = 0;
-// }
+	derivation.dependenciesState = IDerivationState.NOT_TRACKING;
+	obs.length = 0;
+}

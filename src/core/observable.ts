@@ -48,33 +48,46 @@ export function endBatch() {
 	if (--globalState.inBatch === 0) {
 		runReactions();
 		// the batch is actually about to finish, all unobserving should happen here.
-		// const list = globalState.pendingUnobservations;
-		// for (let i = 0; i < list.length; i++) {
-		// 	const observable = list[i];
-		// 	observable.isPendingUnobservation = false;
-		// 	if (observable.observers.length === 0) {
-		// 		observable.onBecomeUnobserved();
-		// 		// NOTE: onBecomeUnobserved might push to `pendingUnobservations`
-		// 	}
-		// }
-		// globalState.pendingUnobservations = [];
+		const list = globalState.pendingUnobservations;
+		for (let i = 0; i < list.length; i++) {
+			const observable = list[i];
+			observable.isPendingUnobservation = false;
+			if (observable.observers.length === 0) {
+				observable.onBecomeUnobserved();
+				// NOTE: onBecomeUnobserved might push to `pendingUnobservations`
+			}
+		}
+		globalState.pendingUnobservations = [];
 	}
 }
 
 export function removeObserver(observable: IObservable, node: IDerivation) {
 	if (observable.observers.length === 1) {
 		observable.observers.length = 0;
-		// queueForUnobservation(observable);
+		queueForUnobservation(observable);
 	} else {
-		const list = observable.observers;
-		const map = observable.observersIndexes;
+		// const list = observable.observers;
+		// const map = observable.observersIndexes;
 	}
+}
 
+export function queueForUnobservation(observable: IObservable) {
+	if (!observable.isPendingUnobservation) {
+		// invariant(globalState.inBatch > 0, "INTERNAL ERROR, remove should be called only inside batch");
+		// invariant(observable._observers.length === 0, "INTERNAL ERROR, shuold only queue for unobservation unobserved observables");
+		observable.isPendingUnobservation = true;
+		globalState.pendingUnobservations.push(observable);
+	}
 }
 
 export function reportObserved(observable: IObservable) {
 	const derivation = globalState.trackingDerivation;
 	if (derivation !== null) {
+		/**
+		 * Simple optimization, give each derivation run an unique id (runId)
+		 * Check if last time this observable was accessed the same runId is used
+		 * if this is the case, the relation is already known
+		 */
 		if (derivation.runId !== observable.lastAccessedBy) {
 			observable.lastAccessedBy = derivation.runId;
 			derivation.newObserving![derivation.unboundDepsCount++] = observable;
