@@ -1,5 +1,6 @@
 import {isObservable} from "./isobservable";
 import {deepEnhancer} from "../types/modifiers";
+import {IObservableArray, ObservableArray} from "../types/observablearray";
 import {IObservableValue, ObservableValue} from "../types/observablevalue";
 
 function createObservable(v: any = undefined) {
@@ -40,6 +41,9 @@ export class IObservableFactories {
   box<T>(value?: T, name?: string): IObservableValue<T> {
     return new ObservableValue(value, deepEnhancer, name);
   }
+	array<T>(initialValues?: T[], name?: string) {
+		return new ObservableArray(initialValues, deepEnhancer, name) as any;
+	}
 }
 
 export var observable: IObservableFactory & IObservableFactories = createObservable as any;

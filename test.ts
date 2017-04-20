@@ -21,19 +21,42 @@ function buffer() {
     return res;
 }
 
-test('basic', t => {
-	var a = mobx.observable(1);
+test("#278 do not rerun if expr output doesn't change structurally", t => {
+	var users = mobx.observable([
+		{
+			name: "jan",
+			get uppername() { return this.name.toUpperCase() }
+		},
+		{
+			name: "piet",
+			get uppername() { return this.name.toUpperCase() }
+		}
+	]);
 	var values = [];
 
-	var d = reaction(() => a.get(), newValue => {
-		values.push(newValue);
-	})
+	var d = reaction(
+		() => users.map(user => user.uppername),
+		newValue => {
+			values.push(newValue);
+		},
+		{
+			fireImmediately: true,
+			compareStructural: true
+		}
+	)
 
-	a.set(2);
-	a.set(3);
+	users[0].name = "john";
+	users[0].name = "JoHn";
+	users[0].name = "jOHN";
+	users[1].name = "johan";
+
 	d();
-	a.set(4);
+	users[1].name = "w00t";
 
-	t.deepEqual(values, [2, 3]);
+	t.deepEqual(values, [
+		["JAN", "PIET"],
+		["JOHN", "PIET"],
+		["JOHN", "JOHAN"]
+	]);
 	t.end();
 })

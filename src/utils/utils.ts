@@ -1,4 +1,8 @@
 import {globalState} from "../core/globalstate";
+import {IObservableArray, isObservableArray} from "../types/observablearray";
+
+export const EMPTY_ARRAY = [];
+Object.freeze(EMPTY_ARRAY);
 
 export function isObject(value: any): boolean {
 	return value !== null && typeof value === "object";
@@ -50,6 +54,22 @@ export function valueDidChange(compareStructural: boolean, oldValue, newValue): 
 		: oldValue !== newValue;
 }
 
+export function addHiddenFinalProp(object: any, propName: string, value: any) {
+	Object.defineProperty(object, propName, {
+		enumerable: false,
+		writable: false,
+		configurable: true,
+		value
+	});
+}
+
+/**
+ * Returns whether the argument is an array, disregarding observability.
+ */
+export function isArrayLike(x: any): x is Array<any> | IObservableArray<any> {
+	return Array.isArray(x) || isObservableArray(x);
+}
+
 /**
  * Naive deepEqual. Doesn't check for prototype, non-enumerable or out-of-range properties on arrays.
  * If you have such a case, you probably should use this function but something fancier :).
@@ -61,7 +81,19 @@ export function deepEqual(a, b) {
 		return true;
 	if (typeof a !== "object")
 		return a === b;
-	// const aIsArray = isArrayLike(a);
+	const aIsArray = isArrayLike(a);
+
+	if (aIsArray !== isArrayLike(b)) {
+		return false;
+	} else if (aIsArray) {
+		if (a.length !== b.length) {
+			return false;
+		}
+		for (let i = a.length - 1; i >= 0; i--)
+			if (!deepEqual(a[i], b[i]))
+				return false;
+		return true;
+	}
 	// const aIsMap = isMapLike(a);
 	// if (aIsArray !== isArrayLike(b)) {
 	// 	return false;

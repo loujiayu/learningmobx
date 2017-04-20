@@ -75,9 +75,15 @@ export function reaction<T>(expression: (r: IReactionPublic) => T, effect: (arg:
 	
 	const r = new Reaction(opts.name, () => {
 		if (firstTime || (opts.delay as any) < 1) {
-			reactionRunner()
+			reactionRunner();
+		} else if (!isScheduled) {
+			isScheduled = true;
+			setTimeout(() => {
+				isScheduled = false;
+				reactionRunner();
+			}, opts.delay);
 		}
-	})
+	});
 
 	function reactionRunner() {
 		if (r.isDisposed)
@@ -88,8 +94,8 @@ export function reaction<T>(expression: (r: IReactionPublic) => T, effect: (arg:
 			changed = valueDidChange(opts.compareStructural!, nextValue, v)
 			nextValue = v
 		})
-		// if (firstTime && opts.fireImmediately)
-		// 	effect(nextValue, r);
+		if (firstTime && opts.fireImmediately)
+			effect(nextValue, r);
 		if (!firstTime && (changed as boolean) === true ) 
 			effect(nextValue, r)
 		if (firstTime)

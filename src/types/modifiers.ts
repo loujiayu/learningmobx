@@ -1,4 +1,5 @@
 import { isObservable } from "../api/isobservable";
+import { observable } from "../api/observable";
 
 export interface IEnhancer<T> {
 	(newValue: T, oldValue: T | undefined, name: string): T;
@@ -20,8 +21,8 @@ export function deepEnhancer(v, _, name) {
 		return v;
 
 	// something that can be converted and mutated?
-	// if (Array.isArray(v))
-	// 	return observable.array(v, name);
+	if (Array.isArray(v))
+		return observable.array(v, name);
 	// if (isPlainObject(v))
 	// 	return observable.object(v, name);
 	// if (isES6Map(v))
