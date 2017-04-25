@@ -1,6 +1,6 @@
 import {IListenable, registerListener, hasListeners, notifyListeners} from "./listen-utils";
 import {IInterceptable, IInterceptor, registerInterceptor} from "./intercept-utils";
-import {isObject, createInstanceofPredicate, getNextId, Lambda, addHiddenFinalProp, EMPTY_ARRAY} from "../utils/utils";
+import {isObject, createInstanceofPredicate, getNextId, Lambda, addHiddenFinalProp, EMPTY_ARRAY, addHiddenProp} from "../utils/utils";
 import {BaseAtom} from "../core/atom";
 import {IEnhancer} from "../types/modifiers";
 
@@ -143,6 +143,12 @@ function createArrayBufferItem(index: number) {
 
 function createArraySetter(index: number) {
   return function<T>(newValue: T) {
+		const adm = <ObservableArrayAdministration<T>> this.$mobx;
+		const values = adm.values;
+		if (index < values.length) {
+			const oldValue = values[index];
+			// if ()
+		}
   }
 }
 
@@ -159,6 +165,27 @@ function createArrayGetter(index: number) {
     return undefined;
   }
 }
+
+[
+	"every",
+	"filter",
+	"forEach",
+	"indexOf",
+	"join",
+	"lastIndexOf",
+	"map",
+	"reduce",
+	"reduceRight",
+	"slice",
+	"some"
+].forEach(funcName => {
+	const baseFunc = Array.prototype[funcName];
+	addHiddenProp(ObservableArray.prototype, funcName, function() {
+		this.$mobx.atom.reportObserved();
+		return baseFunc.apply(this.$mobx.values, arguments);
+	});
+});
+
 
 const isObservableArrayAdministration = createInstanceofPredicate("ObservableArrayAdministration", ObservableArrayAdministration);
 

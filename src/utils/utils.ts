@@ -35,6 +35,13 @@ export function once(func: Lambda): Lambda {
 	}
 }
 
+export function isPlainObject(value) {
+	if (value === null || typeof value !== "object")
+		return false;
+	const proto = Object.getPrototypeOf(value);
+	return proto === Object.prototype || proto === null;
+}
+
 declare var Symbol;
 
 export function primitiveSymbol() {
@@ -54,6 +61,20 @@ export function valueDidChange(compareStructural: boolean, oldValue, newValue): 
 		: oldValue !== newValue;
 }
 
+const prototypeHasOwnProperty = Object.prototype.hasOwnProperty;
+export function hasOwnProperty(object: Object, propName: string) {
+	return prototypeHasOwnProperty.call(object, propName);
+}
+
+export function addHiddenProp(object: any, propName: string, value: any) {
+	Object.defineProperty(object, propName, {
+		enumerable: false,
+		writable: true,
+		configurable: true,
+		value
+	});
+}
+
 export function addHiddenFinalProp(object: any, propName: string, value: any) {
 	Object.defineProperty(object, propName, {
 		enumerable: false,
@@ -63,11 +84,9 @@ export function addHiddenFinalProp(object: any, propName: string, value: any) {
 	});
 }
 
-/**
- * Returns whether the argument is an array, disregarding observability.
- */
-export function isArrayLike(x: any): x is Array<any> | IObservableArray<any> {
-	return Array.isArray(x) || isObservableArray(x);
+export function isPropertyConfigurable(object: any, prop: string): boolean {
+	const descriptor = Object.getOwnPropertyDescriptor(object, prop);
+	return !descriptor || (descriptor.configurable !== false && descriptor.writable !== false);
 }
 
 /**
@@ -134,4 +153,12 @@ export function deepEqual(a, b) {
 	// 	return true;
 	// }
 	return false;
+}
+
+/**
+ * Returns whether the argument is an array, disregarding observability.
+ */
+export function isArrayLike(x: any): x is Array<any> | IObservableArray<any> {
+	return Array.isArray(x);
+	// return Array.isArray(x) || isObservableArray(x);
 }

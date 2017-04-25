@@ -2,6 +2,8 @@ import {isObservable} from "./isobservable";
 import {deepEnhancer} from "../types/modifiers";
 import {IObservableArray, ObservableArray} from "../types/observablearray";
 import {IObservableValue, ObservableValue} from "../types/observablevalue";
+import {IObservableObject, asObservableObject} from "../types/observableobject";
+import {extendObservable} from "../api/extendobservable";
 
 function createObservable(v: any = undefined) {
   if (typeof arguments[1] === 'string')
@@ -43,6 +45,14 @@ export class IObservableFactories {
   }
 	array<T>(initialValues?: T[], name?: string) {
 		return new ObservableArray(initialValues, deepEnhancer, name) as any;
+	}
+	object<T>(props: T, name?: string): T & IObservableObject{
+		const res = {}
+		// convert to observable object
+		asObservableObject(res, name);
+		// add properties
+		extendObservable(res, props);
+		return res as any
 	}
 }
 

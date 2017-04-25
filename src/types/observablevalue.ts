@@ -45,6 +45,13 @@ export class ObservableValue<T> extends BaseAtom implements IObservableValue<T>,
   }
 
   private prepareNewValue(newValue): T | IUNCHANGED {
+    // if (hasInterceptors(this)) {
+		// 	const change = interceptChange<IValueWillChange<T>>(this, { object: this, type: "update", newValue });
+		// 	if (!change)
+		// 		return UNCHANGED;
+		// 	newValue = change.newValue;
+		// }
+
     newValue = this.enhancer(newValue, this.value, this.name);
     return this.value !== newValue
       ? newValue
